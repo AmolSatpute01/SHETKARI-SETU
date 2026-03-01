@@ -1,0 +1,155 @@
+/* ===== PAGE BACKGROUND ===== */
+.register-page {
+  min-height: calc(100vh - 120px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 15px;
+
+  /* Light brightness + focus on wheat (lower part of image) */
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.55)),
+    url("https://images.unsplash.com/photo-1500937386664-56d1dfef3854");
+
+  background-size: cover;
+  background-position: center bottom; /* 🔥 reduces sky, increases wheat */
+  background-repeat: no-repeat;
+}
+
+/* ===== CARD ===== */
+.register-card {
+  width: 420px;
+  background: #ffffff;
+  padding: 25px 30px 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  position: relative;
+}
+
+/* ===== LANGUAGE SELECT ===== */
+.register-language {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.register-language select {
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+/* ===== TITLE ===== */
+.register-title {
+  text-align: center;
+  color: #2e7d32;
+  margin-bottom: 20px;
+}
+
+/* ===== FORM ===== */
+.register-card label {
+  display: block;
+  margin-top: 12px;
+  font-weight: 500;
+}
+
+.register-card input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+/* ===== BUTTON ===== */
+.register-btn {
+  width: 100%;
+  margin-top: 20px;
+  padding: 12px;
+  background-color: #2e7d32;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.register-btn:hover {
+  background-color: #256428;
+}
+
+/* ===== HELP NOTE ===== */
+.help-note {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #444;
+  text-align: center;
+}
+
+/* ===== SUCCESS MESSAGE AFTER REGISTRATION ===== */
+.success-box {
+  text-align: center;
+  padding: 25px 20px;
+}
+
+.success-box h2 {
+  color: #2e7d32;
+  margin-bottom: 12px;
+  font-size: 22px;
+}
+
+.success-box p {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 15px;
+}
+
+.success-box .register-btn {
+  margin-top: 15px;
+}
+
+.error-text {
+  color: #d32f2f;
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.help-link {
+  color: #2e7d32;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.help-link:hover {
+  color: #256428;
+}
+
+.login-note {
+  margin-top: 15px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.login-link {
+  color: #2e7d32;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.login-link:hover {
+  text-decoration: underline;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+#root {
+  min-height: 100%;
+}

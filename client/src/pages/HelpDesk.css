@@ -1,0 +1,97 @@
+/* ===== HELP DESK PAGE ===== */
+.helpdesk-page {
+  min-height: calc(100vh - 120px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-image:
+    linear-gradient(
+      rgba(255, 255, 255, 0.55),
+      rgba(255, 255, 255, 0.55)
+    ),
+    url("../assets/helpdesk-bg.jpg");
+
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center 65%;
+
+  padding: 40px 20px;
+}
+
+/* ===== CARD ===== */
+.helpdesk-card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 420px;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  text-align: center;
+}
+
+/* ===== LANGUAGE SELECT ===== */
+.helpdesk-language {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.helpdesk-language select {
+  padding: 6px 10px;
+  font-size: 14px;
+}
+
+/* ===== TITLE ===== */
+.helpdesk-card h2 {
+  color: #2e7d32;
+  margin-bottom: 10px;
+}
+
+/* ===== TEXT ===== */
+.helpdesk-text {
+  font-size: 15px;
+  color: #333;
+  margin-bottom: 22px;
+  line-height: 1.5;
+}
+
+/* ===== BUTTONS ===== */
+.helpdesk-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #fff;
+
+  /* ✅ IMPORTANT FIXES */
+  text-decoration: none;   /* removes underline */
+  display: block;
+}
+
+/* ✅ SPACE BETWEEN BUTTONS (KEY FIX) */
+.call-btn {
+  background-color: #2e7d32;
+  margin-bottom: 14px;   /* 👈 space like previous version */
+}
+
+.call-btn:hover {
+  background-color: #256428;
+}
+
+.whatsapp-btn {
+  background-color: #25d366;
+}
+
+.whatsapp-btn:hover {
+  background-color: #1ebe5d;
+}
+
+
+
+
+
+
