@@ -30,6 +30,11 @@ const farmerSchema = new mongoose.Schema(
       default: "",
     },
 
+    payment: {
+      type: Object,
+      default: null,
+    },
+
     taluka: { type: String, default: "" },
 
     district: { type: String, default: "" },

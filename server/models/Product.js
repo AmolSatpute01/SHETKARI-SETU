@@ -45,6 +45,16 @@ const productSchema = new mongoose.Schema(
       index: true,
     },
 
+    items: [
+  {
+    productId: { type: String },
+    productName: String,
+    quantity: Number,
+    unit: String,
+    price: Number,
+  },
+],
+
     available: {
       type: Boolean,
       default: true,

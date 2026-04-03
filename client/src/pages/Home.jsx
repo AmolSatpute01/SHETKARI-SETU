@@ -67,7 +67,7 @@ function Home({ language, setLanguage }) {
               onClick={() => navigate("/register")}
               style={{ background: "#2e7d32", color: "white", border: "none", padding: "8px 16px", borderRadius: "8px", fontWeight: "bold", cursor: "pointer" }}
             >
-              {text.signinRegisterBtn || "Signin / Register"}
+              {text.signinRegisterBtn || "Signin  /  Register"}
             </button>
 
             <button className="home-menu-btn" onClick={() => setMenuOpen((p) => !p)}>

@@ -23,68 +23,89 @@ const generateInvoiceId = () => {
 ========================= */
 router.post("/place", async (req, res) => {
   try {
-    const { productId, quantity, customerName, customerMobile, address } = req.body;
+    const { items, customerName, customerMobile, address } = req.body;
+    console.log("🔥 ORDER BODY:", req.body);
 
-    if (!productId || !quantity) {
-      return res.status(400).json({
-        success: false,
-        message: "Product and quantity required",
-      });
-    }
+if (!items || items.length === 0) {
+  return res.status(400).json({
+    success: false,
+    message: "No items provided",
+  });
+}
 
-    const product = await Product.findById(productId);
+let totalPrice = 0;
+let orderItems = [];
+let farmerId = null;
 
-    if (!product || product.available === false || product.quantity <= 0) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not available",
-      });
-    }
+for (let item of items) {
+  console.log("👉 ITEM:", item);
 
-    const qty = Number(quantity);
-    if (isNaN(qty) || qty <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Quantity must be greater than 0",
-      });
-    }
+  const id = item.productId || item._id;
 
-    // ✅ stock check
-    if (qty > product.quantity) {
-      return res.status(400).json({
-        success: false,
-        message: `Only ${product.quantity} ${product.unit} available in stock`,
-      });
-    }
+  if (!id) {
+    console.log("❌ Missing ID:", item);
+    continue;
+  }
 
-    const totalPrice = qty * product.price;
+  const product = await Product.findById(id);
 
-    const order = new Order({
-      farmerId: product.farmerId,
-      productId: product._id,
-      productName: product.productName,
-      quantity: qty,
-      unit: product.unit,
-      totalPrice,
-      customerName: customerName || "Customer",
-      customerMobile: customerMobile || "",
-      address: address || "Not provided",
-      expectedDelivery: getExpectedDeliveryDate(),
-      invoiceId: generateInvoiceId(),
+  if (!product || product.available === false) continue;
+
+  const qty = Number(item.quantity || item.qty);
+
+  if (!qty || isNaN(qty)) {
+  console.log("❌ Invalid quantity:", item);
+  continue;
+}
+
+  if (qty > product.quantity) {
+    return res.status(400).json({
+      success: false,
+      message: `Only ${product.quantity} ${product.unit} available`,
     });
+  }
 
-    await order.save();
+  totalPrice += product.price * qty;
 
-    // ✅ reduce stock
-    product.quantity = product.quantity - qty;
+  orderItems.push({
+    productId: product._id,
+    productName: product.productName,
+    quantity: qty,
+    unit: product.unit,
+    price: product.price,
+  });
 
-    // ✅ auto out of stock toggle
-    if (product.quantity <= 0) {
-      product.available = false;
-    }
+  if (!farmerId) farmerId = product.farmerId;
 
-    await product.save();
+  product.quantity -= qty;
+  if (product.quantity <= 0) product.available = false;
 
+  await product.save();
+}
+
+if (orderItems.length === 0) {
+  return res.status(400).json({
+    success: false,
+    message: "No valid products in cart",
+  });
+}
+
+console.log("✅ FINAL ORDER ITEMS:", orderItems);
+console.log("💰 TOTAL:", totalPrice);
+
+// ✅ CREATE SINGLE ORDER
+const order = new Order({
+  farmerId,
+  items: orderItems,
+  totalPrice,
+  customerName: customerName || "Customer",
+  customerMobile: customerMobile || "",
+  address: address || "Not provided",
+  expectedDelivery: getExpectedDeliveryDate(),
+  invoiceId: generateInvoiceId(),
+});
+
+await order.save();
     res.status(201).json({
       success: true,
       message: "Order placed successfully ✅",
@@ -95,7 +116,7 @@ router.post("/place", async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server error while placing order",
-    });
+    });   
   }
 });
 
@@ -163,7 +184,7 @@ router.get("/customer/:mobile", async (req, res) => {
     const mobile = req.params.mobile;
 
     const orders = await Order.find({ customerMobile: mobile })
-      .populate("productId", "productName price unit images")
+      .populate("items.productId", "productName price unit images")
       .populate("farmerId", "name photo taluka district state")
       .sort({ createdAt: -1 });
 
@@ -206,12 +227,15 @@ router.put("/cancel/:orderId", async (req, res) => {
     await order.save();
 
     // ✅ restore product stock
-    const product = await Product.findById(order.productId);
-    if (product) {
-      product.quantity += order.quantity;
-      product.available = true;
-      await product.save();
-    }
+    for (let item of order.items) {
+  const product = await Product.findById(item.productId);
+
+  if (product) {
+    product.quantity += item.quantity;
+    product.available = true;
+    await product.save();
+  }
+}
 
     res.json({
       success: true,

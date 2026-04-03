@@ -28,54 +28,62 @@ function Login() {
 
   const [userKey, setUserKey] = useState("");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
 
-    if (!loginId || !password) {
-      setError(text.loginRequiredError);
-      return;
+
+
+const handleSubmit = async (e) => {
+  e.preventDefault(); // ✅ ALWAYS FIRST
+
+  console.log("Login button clicked");
+
+  setError("");
+
+  if (!loginId || !password) {
+    setError(text.loginRequiredError);
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:5000/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        loginId,
+        password,
+        role,
+      }),
+    });
+
+    const data = await res.json();
+
+    console.log("LOGIN RESPONSE:", data); // ✅ CORRECT PLACE
+
+    if (data.success) {
+      console.log("Login success block running");
+
+    if (role === "farmer") {
+  localStorage.setItem("farmer", JSON.stringify(data.user));
+  localStorage.removeItem("customer");
+} else {
+  localStorage.setItem("customer", JSON.stringify(data.user));
+  localStorage.removeItem("farmer");
+}
+
+if (role === "farmer") {
+  window.location.href = "/dashboard";
+} else {
+  window.location.href = "/customer-dashboard"; // or "/"
+}
+    } else {
+      setError(data.message || text.invalidCredentials);
     }
+  } catch (err) {
+    console.error(err);
+    setError(text.serverError);
+  }
+};
 
-    try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          loginId,
-          password,
-          role, // ✅ MOST IMPORTANT FIX
-        }),
-      });
 
-      const data = await res.json();
-
-      if (data.success) {
-        localStorage.setItem("role", data.role || role);
-        localStorage.setItem("user", JSON.stringify(data.user));
-
-        if ((data.role || role) === "customer") {
-          localStorage.setItem("customer", JSON.stringify(data.user));
-          localStorage.removeItem("farmer");
-        } else {
-          localStorage.setItem("farmer", JSON.stringify(data.user));
-          localStorage.removeItem("customer");
-        }
-
-        if (data.token) localStorage.setItem("token", data.token);
-
-        if ((data.role || role) === "customer") {
-          navigate("/customer-dashboard");
-        } else {
-          navigate("/dashboard");
-        }
-      } else {
-        setError(data.message || text.invalidCredentials);
-      }
-    } catch (err) {
-      setError(text.serverError);
-    }
-  };
 
   // ✅ SEND OTP FOR FORGOT PASSWORD
   const handleSendForgotOtp = async () => {

@@ -3,13 +3,6 @@ import Product from "../models/Product.js";
 import uploadLocal from "../middleware/uploadLocal.js";
 
 const router = express.Router();
-
-/* =========================
-   ✅ CUSTOMER: GET ALL PRODUCTS
-   ✅ Only show available + in-stock
-   ✅ Also populate farmer details
-   GET /api/products/all
-========================= */
 router.get("/all", async (req, res) => {
   try {
     const products = await Product.find({

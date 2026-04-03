@@ -9,11 +9,37 @@ import getCroppedImg from "../utils/getCroppedImg";
 
 function Dashboard() {
   const navigate = useNavigate();
-  const farmer = JSON.parse(localStorage.getItem("farmer"));
+  
+const farmerData = localStorage.getItem("farmer");
+
+let farmer = null;
+
+try {
+  if (farmerData && farmerData !== "undefined") {
+    farmer = JSON.parse(farmerData);
+  }
+} catch (err) {
+  console.error("Invalid farmer data in localStorage");
+  localStorage.removeItem("farmer");
+  farmer = null;
+}
+
+const farmerId = farmer?._id || farmer?.id;
 
   const [showPayments, setShowPayments] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [paymentData, setPaymentData] = useState(null);
   const [paymentType, setPaymentType] = useState("upi");
+
+  const [upiId, setUpiId] = useState("");
+
+const [bankDetails, setBankDetails] = useState({
+  name: "",
+  account: "",
+  ifsc: "",
+  bank: "",
+  branch: "",
+});
 
   const [language, setLanguage] = useState(
     localStorage.getItem("language") || "en"
@@ -55,14 +81,35 @@ function Dashboard() {
   const [zoom, setZoom] = useState(1.2);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
 
-  useEffect(() => {
-    if (!farmer) {
-      navigate("/login");
-      return;
+
+const fetchPayment = async () => {
+  try {
+    if (!farmer || !farmerId) return;
+
+    const res = await fetch(
+      `http://localhost:5000/api/farmers/payment/${farmerId}`
+    ); // ✅ GET request
+
+    const data = await res.json();
+
+    if (data.success) {
+      setPaymentData(data.payment);
     }
-    fetchPendingOrdersCount();
-    // eslint-disable-next-line
-  }, [farmer, navigate]);
+  } catch (err) {
+    console.error("Payment fetch error:", err);
+  }
+};
+
+useEffect(() => {
+  if (!farmer || !farmerId) {
+    console.log("Redirecting to login...");
+    navigate("/login");
+    return;
+  }
+
+  fetchPendingOrdersCount();
+  fetchPayment();
+}, []);
 
   if (!farmer) return null;
 
@@ -76,21 +123,24 @@ function Dashboard() {
     navigate("/login");
   };
 
-  const fetchPendingOrdersCount = async () => {
-    try {
-      const res = await fetch(
-        `http://localhost:5000/api/orders/farmer/${farmer.id}`
-      );
-      const data = await res.json();
+const fetchPendingOrdersCount = async () => {
+  try {
+    if (!farmer || !farmerId) return;
 
-      if (data.success) {
-        const pendingOrders = data.orders.filter((o) => o.status === "pending");
-        setPendingCount(pendingOrders.length);
-      }
-    } catch (error) {
-      console.error("Pending orders count error:", error);
+    const res = await fetch(
+      `http://localhost:5000/api/orders/farmer/${farmerId}`
+    );
+
+    const data = await res.json();
+
+    if (data.success) {
+      const pendingOrders = data.orders.filter((o) => o.status === "pending");
+      setPendingCount(pendingOrders.length);
     }
-  };
+  } catch (error) {
+    console.error("Pending orders count error:", error);
+  }
+};
 
   // ✅ ORDERS ROUTE
   const goToOrders = () => {
@@ -123,7 +173,7 @@ function Dashboard() {
       formData.append("photo", croppedBlob, "profile.jpg");
 
       const res = await fetch(
-        `http://localhost:5000/api/farmers/upload-photo/${farmer.id}`,
+        `http://localhost:5000/api/farmers/upload-photo/${farmerId}`,
         {
           method: "POST",
           body: formData,
@@ -158,7 +208,7 @@ function Dashboard() {
   const handleSaveProfile = async () => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/farmers/update/${farmer.id}`,
+        `http://localhost:5000/api/farmers/update/${farmerId}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -294,142 +344,202 @@ function Dashboard() {
 
        {/* 💰 PAYMENT MANAGEMENT (SEPARATE & SAFE) */}
        {showPayments && (
-         <div style={productPanel}>
-          <div style={productHeader}>
-          <h2>💰 Payment Details</h2>
-         </div>
+       <div style={paymentWrapper}>
+         <div style={paymentCard}>
+           <h2 style={paymentTitle}>💰 Payment Details</h2>
+       
+           <p style={paymentSubtitle}>
+             Add your bank or UPI details so customers can pay you directly.
+           </p>
+       
 
-          <div style={{ marginTop: "20px" }}>
-            <p style={{ color: "#555", marginBottom: "14px" }}>
-              Add your bank or UPI details so customers can pay you directly.
-            </p>
 
-            <div
-              style={{
-                background: "#f9f9f9",
-                padding: "18px",
-                borderRadius: "10px",
-                border: "1px solid #e0e0e0",
-              }}
-            >
-              <p style={{ margin: 0, fontWeight: "800", color: "#c62828" }}>
-                ❌ Payment details not added
-              </p>
+           {!paymentData ? (
+  <div style={alertBox}>
+    <p style={alertTitle}>❌ Payment details not added</p>
+    <p style={alertDesc}>
+      Customers will not be able to pay until you add payment information.
+    </p>
 
-              <p style={{ marginTop: "8px", fontSize: "14px", color: "#666" }}>
-                Customers will not be able to pay until you add payment
-                information.
-              </p>
-
-              <button
-  onClick={() => setShowPaymentForm(true)}
-  style={{
-    marginTop: "14px",
-    padding: "12px 18px",
-    background: "#2e7d32",
-    color: "#fff",
-    border: "none",
-    borderRadius: "10px",
-    fontWeight: "900",
-    cursor: "pointer",
-  }}
->
-  ➕ Add Payment Details
-</button>
-
-{/* ✅ PAYMENT FORM — OUTSIDE BUTTON */}
-{showPaymentForm && (
-  <div
-    style={{
-      marginTop: "25px",
-      background: "#ffffff",
-      padding: "24px",
-      borderRadius: "12px",
-      border: "1px solid #e0e0e0",
-      maxWidth: "520px",
-    }}
-  >
-    <label style={label}>Payment Method</label>
-    <select
-      style={{ ...input, marginBottom: "16px" }}
-      value={paymentType}
-      onChange={(e) => setPaymentType(e.target.value)}
+    <button
+      onClick={() => setShowPaymentForm(true)}
+      style={primaryBtn}
     >
-      <option value="upi">UPI</option>
-      <option value="bank">Bank Account</option>
-    </select>
+      ➕ Add Payment Details
+    </button>
+  </div>
+) : (
+  <div style={successBox}>
+    <p style={{ fontWeight: "900", color: "#2e7d32" }}>
+      ✅ Payment Details Added
+    </p>
 
-    {paymentType === "upi" && (
-      <>
-        <label style={label}>UPI ID</label>
-        <input style={input} placeholder="example@upi" />
-      </>
+    {paymentData.type === "upi" && (
+      <p><strong>UPI:</strong> {paymentData.upi}</p>
     )}
 
-    {paymentType === "bank" && (
+    {paymentData.type === "bank" && (
       <>
-        <label style={label}>Account Holder Name</label>
-        <input style={input} />
-
-        <label style={label}>Account Number</label>
-        <input style={input} />
-
-        <label style={label}>IFSC Code</label>
-        <input style={input} />
-
-        <label style={label}>Bank Name</label>
-        <input style={input} />
-
-        <label style={label}>Branch</label>
-        <input style={input} />
+        <p><strong>Name:</strong> {paymentData.name}</p>
+        <p><strong>Account:</strong> {paymentData.account}</p>
+        <p><strong>IFSC:</strong> {paymentData.ifsc}</p>
+        <p><strong>Bank:</strong> {paymentData.bank}</p>
+        <p><strong>Branch:</strong> {paymentData.branch}</p>
       </>
     )}
 
     <button
-  onClick={() => {
-    alert("✅ Payment details saved (logic will be added next)");
-    setShowPaymentForm(false);
-  }}
-  style={{
-    width: "100%",
-    padding: "12px",
-    background: "#2e7d32",
-    color: "#fff",
-    border: "none",
-    borderRadius: "10px",
-    fontWeight: "900",
-    cursor: "pointer",
-    marginTop: "14px",
-  }}
->
-  💾 Save Payment Details
-</button>
-
-
-    <button
-      onClick={() => setShowPaymentForm(false)}
-      style={{
-        width: "100%",
-        padding: "12px",
-        background: "#fff",
-        border: "1px solid #ccc",
-        borderRadius: "10px",
-        fontWeight: "800",
-        cursor: "pointer",
-        marginTop: "10px",
-      }}
+      onClick={() => setShowPaymentForm(true)}
+      style={primaryBtn}
     >
-      ✖ Cancel
+      ✏️ Edit Details
     </button>
   </div>
 )}
 
-            </div>
-          </div>
-        </div>
-      )}    
+           {/* FORM */}
+           {showPaymentForm && (
+             <div style={formCard}>
+               <label style={label}>Payment Method</label>
+               <select
+                 style={input}
+                 value={paymentType}
+                 onChange={(e) => setPaymentType(e.target.value)}
+               >
+                 <option value="upi">UPI</option>
+                 <option value="bank">Bank Account</option>
+               </select>
+       
+               {paymentType === "upi" && (
+                 <>
+                   <label style={label}>UPI ID</label>
+                  <input
+                   style={input}
+                   placeholder="example@upi"
+                   value={upiId}
+                   onChange={(e) => setUpiId(e.target.value)}
+                  />
+                 </>
+               )}
+       
+               {paymentType === "bank" && (
+  <div style={gridForm}>
+    <div>
+      <label style={label}>Account Holder Name</label>
+      <input
+        style={input}
+        value={bankDetails.name}
+        onChange={(e) =>
+          setBankDetails({ ...bankDetails, name: e.target.value })
+        }
+      />
+    </div>
 
-      
+    <div>
+      <label style={label}>Account Number</label>
+      <input
+        style={input}
+        value={bankDetails.account}
+        onChange={(e) =>
+          setBankDetails({ ...bankDetails, account: e.target.value })
+        }
+      />
+    </div>
+
+    <div>
+      <label style={label}>IFSC Code</label>
+      <input
+        style={input}
+        value={bankDetails.ifsc}
+        onChange={(e) =>
+          setBankDetails({ ...bankDetails, ifsc: e.target.value })
+        }
+      />
+    </div>
+
+    <div>
+      <label style={label}>Bank Name</label>
+      <input
+        style={input}
+        value={bankDetails.bank}
+        onChange={(e) =>
+          setBankDetails({ ...bankDetails, bank: e.target.value })
+        }
+      />
+    </div>
+
+    <div>
+      <label style={label}>Branch</label>
+      <input
+        style={input}
+        value={bankDetails.branch}
+        onChange={(e) =>
+          setBankDetails({ ...bankDetails, branch: e.target.value })
+        }
+      />
+    </div>
+  </div>
+)}
+       
+<button
+  onClick={async () => {
+    if (!(farmerId)) {
+      alert("❌ Farmer not loaded properly. Please login again.");
+      return;
+    }
+
+    let data;
+
+    if (paymentType === "upi") {
+      data = { type: "upi", upi: upiId };
+    } else {
+      data = {
+        type: "bank",
+        ...bankDetails,
+      };
+    }
+
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/farmers/payment/${farmerId }`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        }
+      );
+
+      const result = await res.json();
+      console.log("PAYMENT RESPONSE:", result);
+
+      if (result.success) {
+        setPaymentData(result.payment);
+        setShowPaymentForm(false);
+        alert("✅ Payment saved permanently!");
+      } else {
+        alert("❌ Save failed");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("❌ Server error");
+    }
+  }}
+  style={saveBtn}
+>
+  💾 Save Payment Details
+</button>
+       
+               <button
+                 onClick={() => setShowPaymentForm(false)}
+                 style={cancelBtn}
+               >
+                 ✖ Cancel
+               </button>
+             </div>
+           )}
+         </div>
+      </div>
+      )}
 
       {/* ✅ PROFILE RIGHT SLIDER */}
       {showProfile && (
@@ -941,6 +1051,103 @@ const cropDoneBtn = {
   color: "#fff",
   cursor: "pointer",
   fontWeight: "900",
+};
+
+const paymentWrapper = {
+  display: "flex",
+  justifyContent: "center",
+  marginTop: "40px",
+};
+
+const paymentCard = {
+  width: "100%",
+  maxWidth: "800px",
+  background: "#fff",
+  padding: "30px",
+  borderRadius: "16px",
+  boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
+};
+
+const paymentTitle = {
+  marginBottom: "8px",
+  color: "#2e7d32",
+};
+
+const paymentSubtitle = {
+  color: "#666",
+  marginBottom: "20px",
+};
+
+const alertBox = {
+  background: "#fff5f5",
+  padding: "16px",
+  borderRadius: "10px",
+  border: "1px solid #ffcdd2",
+};
+
+const alertTitle = {
+  fontWeight: "900",
+  color: "#c62828",
+};
+
+const alertDesc = {
+  fontSize: "14px",
+  color: "#555",
+  marginBottom: "12px",
+};
+
+const primaryBtn = {
+  padding: "10px 16px",
+  background: "#2e7d32",
+  color: "#fff",
+  border: "none",
+  borderRadius: "8px",
+  cursor: "pointer",
+  fontWeight: "800",
+};
+
+const formCard = {
+  marginTop: "25px",
+  background: "#fafafa",
+  padding: "20px",
+  borderRadius: "12px",
+  border: "1px solid #eee",
+};
+
+const gridForm = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: "12px",
+};
+
+const saveBtn = {
+  width: "100%",
+  marginTop: "16px",
+  padding: "12px",
+  background: "#2e7d32",
+  color: "#fff",
+  border: "none",
+  borderRadius: "10px",
+  fontWeight: "900",
+  cursor: "pointer",
+};
+
+const cancelBtn = {
+  width: "100%",
+  marginTop: "10px",
+  padding: "12px",
+  background: "#fff",
+  border: "1px solid #ddd",
+  borderRadius: "10px",
+  fontWeight: "800",
+  cursor: "pointer",
+};
+
+const successBox = {
+  background: "#e8f5e9",
+  padding: "16px",
+  borderRadius: "10px",
+  border: "1px solid #a5d6a7",
 };
 
 export default Dashboard;

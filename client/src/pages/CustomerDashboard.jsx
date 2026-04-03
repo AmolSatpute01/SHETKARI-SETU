@@ -8,10 +8,19 @@ function CustomerDashboard() {
   const navigate = useNavigate();
   const customer = JSON.parse(localStorage.getItem("customer"));
 
+  const [address, setAddress] = useState(
+    localStorage.getItem("customerAddress") || ""
+  );
+
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [sortBy, setSortBy] = useState("latest");
+  const [showFarmerPaymentModal, setShowFarmerPaymentModal] = useState(false);
+
+  const [paymentMethod, setPaymentMethod] = useState("cod");
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedFarmerPayment, setSelectedFarmerPayment] = useState(null);
 
   const [showProducts, setShowProducts] = useState(true);
   const [showCart, setShowCart] = useState(false);
@@ -66,6 +75,7 @@ function CustomerDashboard() {
     try {
       const res = await fetch("http://localhost:5000/api/products/all");
       const data = await res.json();
+      console.log("PAYMENT DATA:", data);
 
       if (data.success) {
         setProducts(data.products || []);
@@ -205,58 +215,58 @@ function CustomerDashboard() {
     return cart.reduce((sum, item) => sum + item.qty * item.price, 0);
   }, [cart]);
 
-  // ✅ Place order (UPDATED: sends customerMobile also)
-  const placeOrder = async () => {
-    if (cart.length === 0) {
-      alert("❌ Cart is empty");
-      return;
-    }
+const placeOrder = async () => {
+  if (cart.length === 0) {
+    alert("❌ Cart is empty");
+    return;
+  }
 
-    const address = prompt("Enter Delivery Address (Required):");
-    if (!address || !address.trim()) {
-      alert("❌ Address is required");
-      return;
-    }
+  let address = localStorage.getItem("customerAddress");
 
-    try {
-      for (let item of cart) {
-        const res = await fetch("http://localhost:5000/api/orders/place", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            productId: item._id,
-            quantity: item.qty,
-            customerName: customer?.name || "Customer",
-            customerMobile: customer?.mobile || "",
-            address: address.trim(),
-          }),
-        });
+  if (!address || !address.trim()) {
+    alert("❌ Please add delivery Address in your profile");
+    return;
+  }
 
-        const data = await res.json();
-        if (!data.success) {
-          alert(data.message || "Order failed");
-          return;
-        }
-      }
+  try {
+    const res = await fetch("http://localhost:5000/api/orders/place", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    items: cart.map((item) => ({
+      productId: item._id,
+      quantity: item.qty,
+    })),
+    customerName: customer?.name || "Customer",
+    customerMobile: customer?.mobile || "",
+    address: address.trim(),
+  }),
+});
 
-      alert("✅ Order placed successfully!");
-      saveCart([]);
-      localStorage.removeItem("cart");
+const data = await res.json();
 
-      fetchAllProducts();
+if (!data.success) {
+  alert(data.message || "Order failed");
+  return;
+}
 
-      setShowTrack(true);
-      setShowProducts(false);
-      setShowCart(false);
-      setShowProfile(false);
+    alert("✅ Order placed successfully!");
+    saveCart([]);
+    localStorage.removeItem("cart");
 
-      // ✅ load orders instantly
-      fetchMyOrders();
-    } catch (error) {
-      console.error(error);
-      alert("❌ Server error while placing order");
-    }
-  };
+    fetchAllProducts();
+
+    setShowTrack(true);
+    setShowProducts(false);
+    setShowCart(false);
+    setShowProfile(false);
+
+    fetchMyOrders();
+  } catch (error) {
+    console.error(error);
+    alert("❌ Server error while placing order");
+  }
+};
 
   // ✅ Logout
   const handleLogout = () => {
@@ -418,6 +428,8 @@ function CustomerDashboard() {
 
               <div style={invoiceDivider}></div>
 
+              {console.log("INVOICE ORDER:", invoiceOrder)}
+
               {/* Product */}
               <h3 style={sectionTitle}>📦 Product Details</h3>
               <div style={productTable}>
@@ -427,13 +439,19 @@ function CustomerDashboard() {
                   <span style={th}>Price</span>
                 </div>
 
-                <div style={tableRow}>
-                  <span style={td}>{invoiceOrder.productName}</span>
-                  <span style={td}>
-                    {invoiceOrder.quantity} {invoiceOrder.unit}
-                  </span>
-                  <span style={td}>₹{invoiceOrder.totalPrice}</span>
-                </div>
+{invoiceOrder.items && invoiceOrder.items.map((item, index) => (
+  <div key={index} style={tableRow}>
+    <span style={td}>{item.productName}</span>
+
+    <span style={td}>
+      {item.quantity} {item.unit}
+    </span>
+
+    <span style={td}>
+      ₹{item.price * item.quantity}
+    </span>
+  </div>
+))}
               </div>
 
               <div style={invoiceDivider}></div>
@@ -701,9 +719,27 @@ function CustomerDashboard() {
                 </div>
               ))}
 
-              <button style={placeOrderBtn} onClick={placeOrder}>
-                ✅ Place Order
-              </button>
+<button
+  onClick={() => {
+    console.log("BUTTON CLICKED"); // debug
+    setShowPaymentModal(true);
+  }}
+  style={{
+    width: "100%",
+    background: "#2e7d32",
+    color: "#fff",
+    padding: "14px",
+    border: "none",
+    borderRadius: "8px",
+    fontWeight: "bold",
+    fontSize: "16px",
+    cursor: "pointer"
+  }}
+>
+  💳 Choose Payment & Place Order
+</button>
+
+
             </div>
           )}
         </div>
@@ -833,16 +869,37 @@ function CustomerDashboard() {
 
             <div style={divider}></div>
 
-            <div style={profileInfoBox}>
-              <div style={infoRow}>
-                <span style={infoLabel}>Email</span>
-                <span style={infoValue}>{customer?.email || "-"}</span>
-              </div>
-            </div>
+            <div style={infoRow}>
+  <span style={infoLabel}>Address</span>
+  <span style={infoValue}>
+    {address || "No address added"}
+  </span>
+</div>
 
-            <button style={logoutBtn} onClick={handleLogout}>
-              Logout
-            </button>
+<div style={{ marginTop: "10px" }}>
+  <button
+    style={{
+      padding: "8px 12px",
+      borderRadius: "8px",
+      border: "none",
+      background: "#2e7d32",
+      color: "#fff",
+      fontWeight: "bold",
+      cursor: "pointer"
+    }}
+    onClick={() => {
+      const newAddress = prompt("Enter your delivery address:");
+
+      if (newAddress && newAddress.trim()) {
+        localStorage.setItem("customerAddress", newAddress.trim());
+        setAddress(newAddress.trim());
+        alert("✅ Address updated!");
+      }
+    }}
+  >
+    ✏️ Edit Address
+  </button>
+</div>
 
             {/* ✅ Crop Modal */}
             {cropModal && (
@@ -979,6 +1036,172 @@ function CustomerDashboard() {
           </div>
         </div>
       )}
+
+{/* ✅ PAYMENT MODAL ✅ */}
+      {showPaymentModal && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          background: "rgba(0,0,0,0.5)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 999
+        }}>
+          <div style={{
+            background: "#fff",
+            padding: "25px",
+            borderRadius: "12px",
+            width: "350px",
+            textAlign: "center"
+          }}>
+            <h3>💳 Select Payment Method</h3>
+
+            <div style={{ marginTop: "15px" }}>
+              <label>
+                <input
+                  type="radio"
+                  value="cod"
+                  checked={paymentMethod === "cod"}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                />
+                Cash on Delivery
+              </label>
+            </div>
+
+            <div style={{ marginTop: "10px" }}>
+              <label>
+                <input
+                  type="radio"
+                  value="online"
+                  checked={paymentMethod === "online"}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                />
+                Online Payment
+              </label>
+            </div>
+
+            <div style={{ marginTop: "20px", display: "flex", gap: "10px", justifyContent: "center" }}>
+              <button onClick={() => setShowPaymentModal(false)}>
+                Cancel
+              </button>
+
+              <button
+
+onClick={async () => {
+  if (paymentMethod === "online") {
+    const firstItem = cart[0];
+
+    const res = await fetch(
+      `http://localhost:5000/api/farmers/payment/${firstItem.farmerId._id}`
+    );
+    const data = await res.json();
+
+    if (data.success && data.payment) {
+      setSelectedFarmerPayment(data.payment);
+
+      // ✅ OPEN PAYMENT DETAILS MODAL
+      setShowPaymentModal(false);
+      setShowFarmerPaymentModal(true);
+
+      return; // ❗ STOP here (don’t place order yet)
+    } else {
+      alert("❌ No payment details found");
+      return;
+    }
+  }
+
+  // COD → directly place order
+  setShowPaymentModal(false);
+  placeOrder();
+}}
+
+                style={{
+                  background: "#2e7d32",
+                  color: "#fff",
+                  padding: "8px 12px",
+                  border: "none",
+                  borderRadius: "6px"
+                }}
+              >
+                Proceed
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+{showFarmerPaymentModal && selectedFarmerPayment && (
+  <div style={{
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    background: "rgba(0,0,0,0.5)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 999
+  }}>
+    <div style={{
+      background: "#fff",
+      padding: "25px",
+      borderRadius: "12px",
+      width: "350px"
+    }}>
+      <h3>🏦 Farmer Payment Details</h3>
+
+      {/* ✅ UPI */}
+{selectedFarmerPayment.type === "upi" && (
+  <p><b>UPI ID:</b> {selectedFarmerPayment.upi}</p>
+)}
+
+{/* ✅ BANK */}
+{selectedFarmerPayment.type === "bank" && (
+  <>
+    <p><b>Account Holder:</b> {selectedFarmerPayment.name}</p>
+    <p><b>Account No:</b> {selectedFarmerPayment.account}</p>
+    <p><b>IFSC:</b> {selectedFarmerPayment.ifsc}</p>
+    <p><b>Bank:</b> {selectedFarmerPayment.bank}</p>
+    <p><b>Branch:</b> {selectedFarmerPayment.branch}</p>
+  </>
+)}
+
+      <p style={{ marginTop: "10px", color: "green", fontWeight: "bold" }}>
+        ⚠️ Pay first, then click confirm
+      </p>
+
+      <div style={{ marginTop: "20px", display: "flex", gap: "10px" }}>
+        <button onClick={() => setShowFarmerPaymentModal(false)}>
+          Cancel
+        </button>
+
+        <button
+          onClick={() => {
+            setShowFarmerPaymentModal(false);
+            placeOrder(); // ✅ AFTER PAYMENT
+          }}
+          style={{
+            background: "#2e7d32",
+            color: "#fff",
+            padding: "8px 12px",
+            border: "none",
+            borderRadius: "6px"
+          }}
+        >
+          ✅ Confirm / I Have Paid
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
+
     </div>
   );
 }
@@ -1097,10 +1320,10 @@ const selectBox = {
 /* ✅ FIX: NO ZOOM ON SEARCH */
 const productGrid = {
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(260px, 260px))",
-  gap: "18px",
-  marginTop: "16px",
-  justifyContent: "start",
+  gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+  gap: "30px",
+  padding: "10px",
+  marginTop: "20px",
 };
 
 const productCard = {
@@ -1108,6 +1331,9 @@ const productCard = {
   padding: "16px",
   borderRadius: "12px",
   boxShadow: "0 6px 16px rgba(0,0,0,0.08)",
+  width: "100%",
+  transition: "0.2s",
+  cursor: "pointer",
 };
 
 const imgBox = {

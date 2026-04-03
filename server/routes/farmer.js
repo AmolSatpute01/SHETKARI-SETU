@@ -92,6 +92,69 @@ router.put("/update/:id", async (req, res) => {
   }
 });
 
+// ================= PAYMENT SAVE =================
+router.put("/payment/:id", async (req, res) => {
+  try {
+    const farmerId = req.params.id;
+
+    if (!farmerId) {
+      return res.status(400).json({
+        success: false,
+        message: "Farmer ID missing",
+      });
+    }
+
+    const farmer = await Farmer.findById(farmerId);
+
+    if (!farmer) {
+      return res.status(404).json({
+        success: false,
+        message: "Farmer not found",
+      });
+    }
+
+    farmer.payment = req.body;
+
+    await farmer.save();
+
+    res.json({
+      success: true,
+      payment: farmer.payment,
+    });
+  } catch (error) {
+    console.error("Payment save error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+});
+
+// ================= PAYMENT GET =================
+router.get("/payment/:id", async (req, res) => {
+  try {
+    const farmer = await Farmer.findById(req.params.id);
+
+    if (!farmer) {
+      return res.status(404).json({
+        success: false,
+        message: "Farmer not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      payment: farmer.payment || null,
+    });
+  } catch (error) {
+    console.error("Fetch payment error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+});
+
 export default router;
 
 

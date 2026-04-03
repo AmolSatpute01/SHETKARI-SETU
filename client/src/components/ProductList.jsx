@@ -51,7 +51,7 @@ function ProductList() {
     setEditId(p._id);
     setEditData({
       productName: p.productName,
-      category: p.category,
+      category: category.toLowerCase(),
       price: p.price,
       quantity: p.quantity,
       unit: p.unit || "kg",
@@ -173,7 +173,7 @@ function ProductList() {
 
   // ✅ GROUP BY CATEGORY
   const grouped = products.reduce((acc, p) => {
-    const cat = p.category || "Other";
+    const cat = p.category?.toLowerCase() || "other";
     acc[cat] = acc[cat] || [];
     acc[cat].push(p);
     return acc;
@@ -204,7 +204,11 @@ function ProductList() {
 
       {Object.keys(grouped).map((category) => (
         <div key={category} style={categoryBlock}>
-          <h3 style={categoryHeader}>📦 {category.toUpperCase()}</h3>
+          <h3 style={categoryHeader}>
+  📦 {category === "fruits" ? "FRUITS" :
+      category === "vegetables" ? "VEGETABLES" :
+      category.toUpperCase()}
+          </h3>
 
           <table style={tableStyle}>
             <thead>

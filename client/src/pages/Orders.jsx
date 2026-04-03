@@ -166,13 +166,30 @@ function Orders() {
                   <span style={th}>Price</span>
                 </div>
 
-                <div style={tableRow}>
-                  <span style={td}>{invoiceOrder.productName}</span>
-                  <span style={td}>
-                    {invoiceOrder.quantity} {invoiceOrder.unit}
-                  </span>
-                  <span style={td}>₹{invoiceOrder.totalPrice}</span>
-                </div>
+{/* Product Rows */}
+{invoiceOrder.items && invoiceOrder.items.length > 0 ? (
+  invoiceOrder.items.map((item, index) => (
+    <div style={tableRow} key={index}>
+      <span style={td}>
+        {item.productName || item.productId?.productName || "N/A"}
+      </span>
+
+      <span style={td}>
+        {item.quantity} {item.unit || item.productId?.unit || ""}
+      </span>
+
+      <span style={td}>
+        ₹{(item.price || item.productId?.price || 0) * item.quantity}
+      </span>
+    </div>
+  ))
+) : (
+  <div style={tableRow}>
+    <span style={td}>No products</span>
+    <span style={td}>-</span>
+    <span style={td}>-</span>
+  </div>
+)}                
               </div>
 
               <div style={invoiceDivider}></div>
