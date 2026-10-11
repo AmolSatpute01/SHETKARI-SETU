@@ -59,7 +59,7 @@ const [bankDetails, setBankDetails] = useState({
 
   // ✅ profile photo state
   const [profilePhoto, setProfilePhoto] = useState(
-    farmer?.photo ? `http://localhost:5000${farmer.photo}?t=${Date.now()}` : ""
+    farmer?.photo ? `https://shetkari-setu-backend.onrender.com${farmer.photo}?t=${Date.now()}` : ""
   );
 
   // ✅ Edit Profile Toggle
@@ -87,7 +87,7 @@ const fetchPayment = async () => {
     if (!farmer || !farmerId) return;
 
     const res = await fetch(
-      `http://localhost:5000/api/farmers/payment/${farmerId}`
+      `https://shetkari-setu-backend.onrender.com/api/farmers/payment/${farmerId}`
     ); // ✅ GET request
 
     const data = await res.json();
@@ -128,7 +128,7 @@ const fetchPendingOrdersCount = async () => {
     if (!farmer || !farmerId) return;
 
     const res = await fetch(
-      `http://localhost:5000/api/orders/farmer/${farmerId}`
+      `https://shetkari-setu-backend.onrender.com/api/orders/farmer/${farmerId}`
     );
 
     const data = await res.json();
@@ -173,7 +173,7 @@ const fetchPendingOrdersCount = async () => {
       formData.append("photo", croppedBlob, "profile.jpg");
 
       const res = await fetch(
-        `http://localhost:5000/api/farmers/upload-photo/${farmerId}`,
+        `https://shetkari-setu-backend.onrender.com/api/farmers/upload-photo/${farmerId}`,
         {
           method: "POST",
           body: formData,
@@ -184,7 +184,7 @@ const fetchPendingOrdersCount = async () => {
 
       if (data.success) {
         // ✅ FORCE REFRESH always using timestamp (fix cache)
-        const fullUrl = `http://localhost:5000${data.photo}?t=${Date.now()}`;
+        const fullUrl = `https://shetkari-setu-backend.onrender.com${data.photo}?t=${Date.now()}`;
         setProfilePhoto(fullUrl);
 
         // ✅ update localStorage farmer
@@ -208,7 +208,7 @@ const fetchPendingOrdersCount = async () => {
   const handleSaveProfile = async () => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/farmers/update/${farmerId}`,
+        `https://shetkari-setu-backend.onrender.com/api/farmers/update/${farmerId}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -501,7 +501,7 @@ const fetchPendingOrdersCount = async () => {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/farmers/payment/${farmerId }`,
+        `https://shetkari-setu-backend.onrender.com/api/farmers/payment/${farmerId }`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },

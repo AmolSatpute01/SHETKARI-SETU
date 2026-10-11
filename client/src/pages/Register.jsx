@@ -73,7 +73,7 @@ function Register() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/auth/send-otp-register",
+        "https://shetkari-setu-backend.onrender.com/api/auth/send-otp-register",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -112,7 +112,7 @@ function Register() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/auth/verify-otp-register",
+        "https://shetkari-setu-backend.onrender.com/api/auth/verify-otp-register",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

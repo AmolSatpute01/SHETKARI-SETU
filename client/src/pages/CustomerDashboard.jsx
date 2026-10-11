@@ -38,7 +38,7 @@ function CustomerDashboard() {
   // ✅ Customer Photo
   const [profilePhoto, setProfilePhoto] = useState(
     customer?.photo
-      ? `http://localhost:5000${customer.photo}?t=${Date.now()}`
+      ? `https://shetkari-setu-backend.onrender.com${customer.photo}?t=${Date.now()}`
       : ""
   );
 
@@ -73,7 +73,7 @@ function CustomerDashboard() {
 
   const fetchAllProducts = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/products/all");
+      const res = await fetch("https://shetkari-setu-backend.onrender.com/api/products/all");
       const data = await res.json();
       console.log("PAYMENT DATA:", data);
 
@@ -93,7 +93,7 @@ function CustomerDashboard() {
       setOrdersLoading(true);
 
       const res = await fetch(
-        `http://localhost:5000/api/orders/customer/${customer.mobile}`
+        `https://shetkari-setu-backend.onrender.com/api/orders/customer/${customer.mobile}`
       );
       const data = await res.json();
 
@@ -117,7 +117,7 @@ function CustomerDashboard() {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/orders/cancel/${orderId}`,
+        `https://shetkari-setu-backend.onrender.com/api/orders/cancel/${orderId}`,
         { method: "PUT" }
       );
       const data = await res.json();
@@ -229,7 +229,7 @@ const placeOrder = async () => {
   }
 
   try {
-    const res = await fetch("http://localhost:5000/api/orders/place", {
+    const res = await fetch("https://shetkari-setu-backend.onrender.com/api/orders/place", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
@@ -305,7 +305,7 @@ if (!data.success) {
       formData.append("photo", croppedBlob, "profile.jpg");
 
       const res = await fetch(
-        `http://localhost:5000/api/customers/upload-photo/${customer.id}`,
+        `https://shetkari-setu-backend.onrender.com/api/customers/upload-photo/${customer.id}`,
         {
           method: "POST",
           body: formData,
@@ -315,7 +315,7 @@ if (!data.success) {
       const data = await res.json();
 
       if (data.success) {
-        const fullUrl = `http://localhost:5000${data.photo}?t=${Date.now()}`;
+        const fullUrl = `https://shetkari-setu-backend.onrender.com${data.photo}?t=${Date.now()}`;
         setProfilePhoto(fullUrl);
 
         const updatedCustomer = { ...customer, photo: data.photo };
@@ -337,7 +337,7 @@ if (!data.success) {
 
   /* ✅ IMAGE VIEWER */
   const openImageViewer = (imgs, idx = 0) => {
-    const fullImgs = (imgs || []).map((x) => `http://localhost:5000${x}`);
+    const fullImgs = (imgs || []).map((x) => `https://shetkari-setu-backend.onrender.com${x}`);
     if (fullImgs.length === 0) return;
     setViewerImages(fullImgs);
     setViewerIndex(idx);
@@ -613,7 +613,7 @@ if (!data.success) {
                     <img
                       src={
                         p.images?.length > 0
-                          ? `http://localhost:5000${p.images[0]}`
+                          ? `https://shetkari-setu-backend.onrender.com${p.images[0]}`
                           : "https://via.placeholder.com/400x200?text=No+Image"
                       }
                       alt="product"
@@ -644,7 +644,7 @@ if (!data.success) {
                       <div style={farmerAvatar}>
                         {p.farmerId.photo ? (
                           <img
-                            src={`http://localhost:5000${p.farmerId.photo}?t=${Date.now()}`}
+                            src={`https://shetkari-setu-backend.onrender.com${p.farmerId.photo}?t=${Date.now()}`}
                             alt="farmer"
                             style={{ width: "100%", height: "100%", objectFit: "cover" }}
                           />
@@ -961,7 +961,7 @@ if (!data.success) {
               <div style={farmerAvatarBig}>
                 {selectedFarmer.photo ? (
                   <img
-                    src={`http://localhost:5000${selectedFarmer.photo}?t=${Date.now()}`}
+                    src={`https://shetkari-setu-backend.onrender.com${selectedFarmer.photo}?t=${Date.now()}`}
                     alt="farmer"
                     style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   />
@@ -1096,7 +1096,7 @@ onClick={async () => {
     const firstItem = cart[0];
 
     const res = await fetch(
-      `http://localhost:5000/api/farmers/payment/${firstItem.farmerId._id}`
+      `https://shetkari-setu-backend.onrender.com/api/farmers/payment/${firstItem.farmerId._id}`
     );
     const data = await res.json();
 

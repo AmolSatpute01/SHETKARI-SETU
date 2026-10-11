@@ -20,7 +20,7 @@ function ProductList() {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/products/${farmer.id}`);
+      const res = await fetch(`https://shetkari-setu-backend.onrender.com/api/products/${farmer.id}`);
       const data = await res.json();
       if (data.success) setProducts(data.products);
     } catch (error) {
@@ -38,7 +38,7 @@ function ProductList() {
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this product?")) return;
 
-    const res = await fetch(`http://localhost:5000/api/products/${id}`, {
+    const res = await fetch(`https://shetkari-setu-backend.onrender.com/api/products/${id}`, {
       method: "DELETE",
     });
 
@@ -61,7 +61,7 @@ function ProductList() {
   // 💾 UPDATE
   const handleUpdate = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/products/${editId}`, {
+      const res = await fetch(`https://shetkari-setu-backend.onrender.com/api/products/${editId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editData),
@@ -82,7 +82,7 @@ function ProductList() {
   // ✅ TOGGLE AVAILABLE / OUT OF STOCK
   const handleToggle = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/products/toggle/${id}`, {
+      const res = await fetch(`https://shetkari-setu-backend.onrender.com/api/products/toggle/${id}`, {
         method: "PUT",
       });
 
@@ -112,7 +112,7 @@ function ProductList() {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/products/upload/${productId}`,
+        `https://shetkari-setu-backend.onrender.com/api/products/upload/${productId}`,
         {
           method: "POST",
           body: formData,
@@ -143,7 +143,7 @@ function ProductList() {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/products/delete-image/${productId}`,
+        `https://shetkari-setu-backend.onrender.com/api/products/delete-image/${productId}`,
         {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
@@ -308,7 +308,7 @@ function ProductList() {
                         <div style={imageBox}>
                           <div style={thumbRow}>
                             {(p.images || []).map((img, index) => {
-                              const fullUrl = `http://localhost:5000${img}`;
+                              const fullUrl = `https://shetkari-setu-backend.onrender.com${img}`;
                               return (
                                 <div key={index} style={thumbWrap}>
                                   <img

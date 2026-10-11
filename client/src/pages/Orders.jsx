@@ -20,7 +20,7 @@ function Orders() {
     try {
       setLoading(true);
       const res = await fetch(
-        `http://localhost:5000/api/orders/farmer/${farmer.id}`
+        `https://shetkari-setu-backend.onrender.com/api/orders/farmer/${farmer.id}`
       );
       const data = await res.json();
 
@@ -52,7 +52,7 @@ function Orders() {
       if (!confirmAction) return;
 
       const res = await fetch(
-        `http://localhost:5000/api/orders/update-status/${orderId}`,
+        `https://shetkari-setu-backend.onrender.com/api/orders/update-status/${orderId}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },

@@ -44,7 +44,7 @@ const handleSubmit = async (e) => {
   }
 
   try {
-    const res = await fetch("http://localhost:5000/api/auth/login", {
+    const res = await fetch("https://shetkari-setu-backend.onrender.com/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -95,7 +95,7 @@ if (role === "farmer") {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/send-otp-forgot", {
+      const res = await fetch("https://shetkari-setu-backend.onrender.com/api/auth/send-otp-forgot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -129,7 +129,7 @@ if (role === "farmer") {
     if (!userKey) return setForgotMsg("Something went wrong. Please resend OTP.");
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/reset-password", {
+      const res = await fetch("https://shetkari-setu-backend.onrender.com/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
