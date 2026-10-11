@@ -15,20 +15,27 @@ const otpStore = {};
 /* =========================
    ✅ SAFE TRANSPORTER CREATION
 ========================= */
+
 const createTransporter = () => {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.log("❌ EMAIL_USER or EMAIL_PASS missing in ENV");
+    console.error("Email credentials are missing in environment variables");
     return null;
   }
 
   return nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 20000,
   });
 };
+
 
 /* =========================
    ✅ SEND OTP MAIL (Safe)
@@ -40,7 +47,9 @@ const sendOtpEmail = async (toEmail, otp) => {
     const transporter = createTransporter();
     if (!transporter) return false;
 
+    console.log("Checking Gmail SMTP connection...");
     await transporter.verify();
+    console.log("Gmail SMTP connection successful");
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
@@ -109,6 +118,7 @@ router.post("/send-otp-register", async (req, res) => {
       });
     }
 
+    
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
     if (!emailRegex.test(email)) {
       return res.status(400).json({
