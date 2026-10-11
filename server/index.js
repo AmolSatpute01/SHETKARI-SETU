@@ -43,7 +43,7 @@ app.get("/", (req, res) => {
   res.send("Shetkari Setu Backend Running 🚜");
 });
 
-/* ✅ DB + Server */
+/* Database + Server */
 const PORT = process.env.PORT || 5000;
 
 mongoose
@@ -51,15 +51,15 @@ mongoose
   .then(() => {
     console.log("✅ MongoDB Connected Successfully");
 
-    if (process.env.NODE_ENV !== "production") {
-      app.listen(PORT, () => {
-        console.log(`🚀 Backend running on http://localhost:${PORT}`);
-      });
-    }
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`🚀 Backend running on port ${PORT}`);
+    });
   })
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
+  .catch((err) => {
+    console.error("❌ MongoDB connection error:", err);
+    process.exit(1);
+  });
 
-export default app;
 
 
 
